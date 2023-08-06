@@ -1,12 +1,24 @@
-# Getting Started with Create React App
+# Tic Tac Toe
 
-This project was bootstrapped with [Create React App](https://github.com/facebook/create-react-app).
+This project is a React tutorial from React's documentation which can be found here: [Tutorial: Tic-Tac-Toe](https://react.dev/learn/tutorial-tic-tac-toe#inspecting-the-starter-code).
 
-## Available Scripts
+## Branches
 
-In the project directory, you can run:
+I will document my work step by step here with each individual branch that I'll be merging alongside the names of the section of the tutorial.
 
-### `npm start`
+### Overview
+
+#### Inspecting the starter code
+
+The beginnning steps are not quite as relevevant for me as I'm developing this locally in VSC as my development environment. It examines the CodeSandbox editor, but then checks the code in the App.js, which is the same.
+
+Within `App.js` it creates a component And reminds us that compnents are used in React to represent part of a UI in an application.
+
+The first line `export default function Square(){` defines a function naming it `Square`. With the `export` JS keyword I'm making it accessible outside of the `App.js` file and the `default` keyword alerts my other files using my code that it's the main function within my file.
+
+The next line has `return <button className="square">X</button>;` with a closing curly bracket as the finishing line, closing off the component for now. Our one line of code in our `Square` compnent uses `return` to return the proceeding value, that value being a JSX element. As a reminder, a JSX element is a combination of JS code and HTML tags that helps describe what we wish to display. Now, `<button>` itself is a JSX element and has one property or prop listed with it, that property being `className="square"`. This prop tells CSS how to style the button. Finally, `X` is only the text being displayed inside the button, and we have the closing tag of `/button` for the JSX element.
+
+Moving to out `style.css` file, it is what defines the styles for the React App. The instructions refer to the first two CSS selectors `*` and `body` which defines the majority of the style for the app. I do notice that those selectors are listed twice in the expected code provided. Some quick research seems to suggest this is a typo duplicate code, as the values inside the selectors are identical. I will see about removing them later.
 
 Runs the app in the development mode.\
 Open [http://localhost:3000](http://localhost:3000) to view it in your browser.
