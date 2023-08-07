@@ -47,6 +47,32 @@ Having gotten rid of it, is still runs with no issue.
 
 Moving back to our App.js we do have a misnomer, our component isn't so much a square anymore than it is a board, so let's change `Square` to `Board`. Of course it still runs as our button classNames are still `square`.
 
+### Passing Data Through Props
+
+The next thing we should do is change how the buttons function; changing the value of a square from empty to "X" when clicked. With how it's currently built I would need to repeat the same same code 9 times which is not ideal. If you ever see similar code repeated take it as an opportunity to make a helper method or function, but in this case we are working in react which uses components, so we'll make a reuseable component here.
+
+We'll have the function be called `Square` and have it return the button code for our squares and update our `board-row`s to use `Square` instead. Like this, we have each square displaying only the number 1. In order to rectify this, we'll use props to pass the value each square should have from the parent component of `Board` to the child `Square`.
+
+The prop we're naming is `value` which is a JSX element, so we'll wrap it in curly brackets to be properly displayed in the return. But since none of our squares name the new value prop it'll be just an empty board. If we have each square name `value="X"` X being whatever, then we can easily fill out the numbers as they were.
+
+###Making an Interactive component
+
+Now to actually make it interactable. Let's declarea function within the Square component called `handleClick` that will do a console log of 'clicked!' for us. Then we'll add another prop named onClick for our button JSX element that's returned from `Square`, which will be equal to our `handleClick` function.
+
+Running the app now and within our console, we should see a log of `clicked!`. The instructions expect to see this on a console tab in CodeSandbox. We can pull up our own console by inspecting the page and going to our own console tab seeing we are also accruing instances of it. But we want it to remember being clicked, so we will make sure to use state.
+
+React provides this with a special function called `useState` that you can call from your component. Let's start by storing the current value of the `Square` in state, and change it when the `Square` is clicked.
+
+We'll first mport `useState` at the top of the `App.js` file and remove the `value` prop from the `Square` component. We'll add in a new line at the start of the `Square` that calls `useState`. In that line of code we will have it return a state variable valled `value`.
+
+`value` will store the value and `setValue` is a function we will use to change the value. The null passed into useState is used as the initial value for the state variable `value`, so we're making this equal to `null` and effectively letting the program remember that.
+
+Looking further into this, `const [value, setValue]` is an array which is using Array destructuring to create 2 variables `value` and `setValue`. The first variable in the array will be assigned the corresponding value of `useState(null)` as stated earlier, and the `setValue` variable holds the function that allows us to update our afforementioned variable `value`. But for now it is not yet used. Let's get to that.
+
+Our `Square` component no longer had props to accept, so let's get rid of those in our `board-row`s and let's use our `setValue` function in our `handleClick` function, giving it the value of 'X' to pass in.
+
+So we'll be calling the `set` function from an `onClick` handler which will be telling React to re-render the `Square` whenever its `<button>` is clicked. Each `Square` at this point has its own state holding its own `value` stored there independent from one another.
+
 Runs the app in the development mode.\
 Open [http://localhost:3000](http://localhost:3000) to view it in your browser.
 
