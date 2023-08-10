@@ -145,6 +145,18 @@ We'll have it that each time the `handleClick` function is called the `xIsNext` 
 
 This will aloow us to switch between this bool state when needed. However, we will still be able to affect an already marked square, able to overwrite its value of "X" with "O" and vice-versa. When we are marking establishing the value of a square we are not first checking to see if the square already has an "X", "O", or a null value there already. We can fix this bt returning early. We'll check to see if the square already has a value or it's null. If the square is already filled, we will `return` in the `handleClick` function early-before it tries to update the board state, thus ending the function before we can change it.
 
+### Declaring a winner
+
+Now that the players can take turns, we'll want to show when the game is won and there are no more turns to make. To do this, we'll need to add a helper function that we will name `calculateWinner` that will take an array of 9 squares, checks for a winner and returns `X`, `O`, or `null` as appropriate.
+
+The logic is setup with a sqaures parameter to pass in. It defines the `lines` variable as an array of 8 arrays that each hold one of the 8 possible combinations of three index locations to win a game. Next, we have a for loop that runs 8 times via the length of our `lines` array, incrementing the value of `i` by 1, starting it at 0. Within the for loop we name an array of `[a, b, c]` and have it be equal to `lines[i]`. Next, we have an if check to see if `squares[a]` hasa a value, and if that value is equal to `squares[b]` and `squares[c]`. So each location of the value of `squares` we pass in is checled, and if it passes, then we return the value held in `squares[a]`. If it ddoesn't then we return null. This could definetly be refactored for faster time, though. If I ordered the array, I could use binary search to cut down on the potential search time. Not that it matters with data this small... a potential refactor for later.
+
+We'll run `calculateWinner(squares)` in our `Board` component's `handleClick` function to check if a player has won. We can perform this check at the same time we check if a user has clicked a square that already has an "X" or an "O".
+
+To let players know that the game is over, we can display test such as "Winner: X" or "Winner: O". To do this we'll add a `status` section to our `Board` component. The status will display if the game is over and if the game is ongoing we'll display which player's turn is next.
+
+The game can now recognize winners and tell us whose turn it is. But it cannot recognize draws, the search could be better optimized, and we still have to implement the time travel feature. LEt's see about adding the first two before moving onto the next section.
+
 Runs the app in the development mode.\
 Open [http://localhost:3000](http://localhost:3000) to view it in your browser.
 
