@@ -55,7 +55,7 @@ We'll have the function be called `Square` and have it return the button code fo
 
 The prop we're naming is `value` which is a JSX element, so we'll wrap it in curly brackets to be properly displayed in the return. But since none of our squares name the new value prop it'll be just an empty board. If we have each square name `value="X"` X being whatever, then we can easily fill out the numbers as they were.
 
-###Making an Interactive component
+### Making an Interactive component
 
 Now to actually make it interactable. Let's declarea function within the Square component called `handleClick` that will do a console log of 'clicked!' for us. Then we'll add another prop named onClick for our button JSX element that's returned from `Square`, which will be equal to our `handleClick` function.
 
@@ -72,6 +72,90 @@ Looking further into this, `const [value, setValue]` is an array which is using 
 Our `Square` component no longer had props to accept, so let's get rid of those in our `board-row`s and let's use our `setValue` function in our `handleClick` function, giving it the value of 'X' to pass in.
 
 So we'll be calling the `set` function from an `onClick` handler which will be telling React to re-render the `Square` whenever its `<button>` is clicked. Each `Square` at this point has its own state holding its own `value` stored there independent from one another.
+
+### React Developer Tools
+We'll be able to check the props and state of all of our React components by inspecting our webpage to see each of them. Working from Chrome you can richt-click th page and hit inspect to get to immediately get to the elements tab, or using the shortcut 'ctrl+shift+c'.
+
+## Completing the Game
+
+Now we're on the next section of fininshing the game, which will have us needing to alternate assigning the value of an "X" and "O" to our `Square`s on our `Board`.
+
+### Lifting state up
+
+So right now our `Square` components maintain a part of our game's state. To check for a winner in this game the `Board` will need to somehow know the state of each of the 9 `Square` components. What's our bestapproach for this? You could ask each square, but this seems a bad idea as it will bloat our code which will hurt its readability and leave it more succeptible to logic errors and bugs. What we should do instead is to store the game's state in the parent `Board` component instead of in each `Square`. The `Board` can tell each `Square` what to display by passing a prop.
+
+**To collect data from multiple children, or have 2 child components communicate with each other, declare the shared state in their parent component instead. The parent component can pass that state back down to the children via props. This keeps the child components in sync with each other and wit their parent.**
+
+It is common to lift state into a parent component when React components are refactored.
+
+But enough talk, let's implement this. We will edit the `Board` component so that it delcares a state variable named `squares` that defaults to an array of 9 nulls for the 9 squares with the following code:
+`const [squares, setSquares] = useState(Array(9).fill(null));`
+
+More specifically, `Array(9).fill(null)` creates an array with 9 elements and sets each of them to `null`. With the `useState()` call around it, it delcares a `squares` state variable that's initally set to that array. Each entry in the array corresponds to the values of a square. When you fill the board in later, the `squares` array will look something like this:
+`['O', null, 'X', 'X', 'X', 'O', 'O', null, null]` 
+
+Now the `Board` component need to pass the `value` prop down to each `Square` that it renders, and edit the `Square` component to receive the `value` prop again. Which will require removing the componment's own stateful tracking of `value` and the `onClick` prop.
+
+Next, we need to change what happens when a `Square` is clicked. The `Board` component now maintains which squares are filled, so we'll need to create a way for the `Square` to update the `Board`'s state. Since state is private to a component that defiens it, you cannot update the `Board`'s state directly from `Square`.
+
+Instead, we'll pass down a function from the `Board` component to the `Square` component, and we'll have `Square` call that function when a square is clicked. We'll start with the function that the `Square` componet will call when it is clicked. We'll call that function `onSquareClick` and add it to the function to the `Square` component's props.
+
+After that, we'll connect the `onSquareClick` prop to a function uin the `Board` component that we'll name `handleClick`. To connect `onSquareClick` to `handleClick` we'll pass a function to the `onSquareClick` prop of the first `Square` component.
+
+Finally, we'll define the `handleClick` function inside the Board component to update the `squares` array holding our board's state. The function creates a copy of the `squares` array naming it `nextSquares` using the JS `slice()` Array method. Next, the function updates the new array copy i.e. `nextSquares` to add an "X" to the first element/starting index of `[0]`.
+
+By calling the `setSquares` function we let React knpw that the state of the component had changed, which will trigger a re-render of the components that use the `squares` state in the `Board` as well as its child components which are the `Square` components that make up the board itself.
+
+But this only works for our first square, as the `nextSquares` index is currently set to 0. So let's uopdate our `handleClick` function to actually act on an appropriate index.  So we'll have the function pass in an rgument of `i` as is typical to represent the index position.
+
+So now that we have the parameter setup, we'll need to act on it. My first thought was to directly pass it in the `return` in the JSX like so: `<Square value={squares[0]} onSquareClick={handleClick(0)} />`
+
+However, the tutorial says this will not work as th `handleClick(0)` will be a part of rendering the board component. Because `handleClick(0)` alters the state of trhe board component be calling `setSquares`, our entire board will be re-rendered again, which would run `handleClick(0)` again which makes an infinite loop.
+
+When we were passing `onSquareClick={handleClick}` we were passing the `handleClick` function down as a prop, meaning we weren't calling it, but now we are calling the function right away which is why it would run too early. We don't want to call `handleClick` until the user clicks.
+
+One solution suggested is create functions called `handleFirstSquareClick`, `handleSecondSquareClick` etc, that will call `handleClick(1)` etc. We would pass these functions down as props on each one which would solve the infinite loop, but defining 9 different functions is too severe a bloat as a solution for this problem. Instead, we'll use this new trick it teaches us.
+
+`<Square value={squares[0]} onSquareClick={() => handleClick(0)} />` This will be the code we will be using. the focus here is `() =>`. This syntax is called an arrow function, it is a shorter way to define functions. When the square is clicked the code after the `=>` or the arrow will run, calling `handleClick(0)` and so on with each square. With this, we are able to place "X"s on our squares.
+
+We now have state handling in the `Board` component, which passes props to the child `Square` components so that they can be displayed correctly. When clicking on a `Square`, the child `Square` component now asks the parent `Board` component to update the state of the board. When the `Board`'s state changes, both the `Board` component and every child `Square` re-renders automatically. Keeping the state of all squares in the `Board` component will also allow it to dtermine the winner in the future.
+
+So, to summarize:
+1. Cliking on a square runs the function that the `button` received as its `onClick` prop from the `Square`, which is set equal to the vaue passed in via the `onSquareClick` prop of the `Square` component. which we assign in the `Board` parent component directly with JSX, calling the `handleClick` function with a certain value, to represent the index. In the case of the first upper left most square, it is 0.
+2. Using the passed in argument of 0 it  knows to update the first element of the `squares` array from null to "X".
+3. Now the `squares` state of the `Board` component was updated, so the `Board` and all its children re-render. This then causes the `value` prop of the `Square` component with the index of 0 to change from null to "X".
+
+Keep in mind that in React, the convention is to use `onSomething` names for props which represent events and `handleSomething` for the cfunction definitions which handle those events.
+
+### Why immutability is important
+
+Now, we're going to look into why in `handleClick` we called `.slice()` to vreate a copy of the `squares` array instead of modifying the existing array. To explain why, we need to discuss immutability and why immutability is important to learn.
+
+There are genberally 2 approaches to changing data, the first approach is to mutate the data by directly changing the data's values and the second approach is to replace the data with new copy which has the desired changes. Do. since `.slice()` just creates a copy of the array, the actual array doesn't change which gives us several benefits. Immutability makes complex features much easier to implement, such as the "time travel" feature we will be implementing late that lets us review the game's history and "jump back" to past moves. This functionality isn't specific to games think of typical software's ability to undo and redo certain actions. Avoiding direct data manipulation lets us keep previous versions of the data intact, and reuse them later.
+
+There is also another beneift to immutability. By default, all child-components re-render automatically whan the state of a parent component changes. This includes even the child components that weren't affected by the change. Although re-rendering is not by itself noticeable to the user (you shouldn't actively try to avoid it), you might want to skip re-rendering a part of the tree that clearly wasn't affected by it for performance reasons. Immutability makes it vey cheap for components to compare whehter their data has changed or not.
+
+### Taking Turns
+
+Now it's time to add in the next important feature to our game, being able to add "O"s to our board.
+
+We'll set the first move to be "X" by default. Let's keep track of this by adding another piece of state to the board component by naming a state variable of `xIsNext` in an array with another varible named `setXIsNext`. They will be defined as `useState(true)` which will give them state and the ultimate boolean value of `true`.
+
+We'll have it that each time the `handleClick` function is called the `xIsNext` vlaue will be flipped to determine which player goes next and the game's state will be saved. We'll update the `Board`'s `handleClick` function to flip the value of `xIsNext`.
+
+This will aloow us to switch between this bool state when needed. However, we will still be able to affect an already marked square, able to overwrite its value of "X" with "O" and vice-versa. When we are marking establishing the value of a square we are not first checking to see if the square already has an "X", "O", or a null value there already. We can fix this bt returning early. We'll check to see if the square already has a value or it's null. If the square is already filled, we will `return` in the `handleClick` function early-before it tries to update the board state, thus ending the function before we can change it.
+
+### Declaring a winner
+
+Now that the players can take turns, we'll want to show when the game is won and there are no more turns to make. To do this, we'll need to add a helper function that we will name `calculateWinner` that will take an array of 9 squares, checks for a winner and returns `X`, `O`, or `null` as appropriate.
+
+The logic is setup with a sqaures parameter to pass in. It defines the `lines` variable as an array of 8 arrays that each hold one of the 8 possible combinations of three index locations to win a game. Next, we have a for loop that runs 8 times via the length of our `lines` array, incrementing the value of `i` by 1, starting it at 0. Within the for loop we name an array of `[a, b, c]` and have it be equal to `lines[i]`. Next, we have an if check to see if `squares[a]` hasa a value, and if that value is equal to `squares[b]` and `squares[c]`. So each location of the value of `squares` we pass in is checled, and if it passes, then we return the value held in `squares[a]`. If it ddoesn't then we return null. This could definetly be refactored for faster time, though. If I ordered the array, I could use binary search to cut down on the potential search time. Not that it matters with data this small... a potential refactor for later.
+
+We'll run `calculateWinner(squares)` in our `Board` component's `handleClick` function to check if a player has won. We can perform this check at the same time we check if a user has clicked a square that already has an "X" or an "O".
+
+To let players know that the game is over, we can display test such as "Winner: X" or "Winner: O". To do this we'll add a `status` section to our `Board` component. The status will display if the game is over and if the game is ongoing we'll display which player's turn is next.
+
+The game can now recognize winners and tell us whose turn it is. But it cannot recognize draws, the search could be better optimized, and we still have to implement the time travel feature. LEt's see about adding the first two before moving onto the next section.
 
 Runs the app in the development mode.\
 Open [http://localhost:3000](http://localhost:3000) to view it in your browser.
