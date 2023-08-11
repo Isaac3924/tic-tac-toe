@@ -73,6 +73,9 @@ function calculateWinner(squares) {
     if (squares[a] && squares[a] === squares[b] && squares[a] === squares[c]) {
       return squares[a];
     }
+    else if (squares.every(item => item !== null)) {
+      return "Draw";
+    }
   }
   return null;
 }
