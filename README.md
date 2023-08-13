@@ -149,24 +149,19 @@ This will aloow us to switch between this bool state when needed. However, we wi
 
 Now that the players can take turns, we'll want to show when the game is won and there are no more turns to make. To do this, we'll need to add a helper function that we will name `calculateWinner` that will take an array of 9 squares, checks for a winner and returns `X`, `O`, or `null` as appropriate.
 
-The logic is setup with a sqaures parameter to pass in. It defines the `lines` variable as an array of 8 arrays that each hold one of the 8 possible combinations of three index locations to win a game. Next, we have a for loop that runs 8 times via the length of our `lines` array, incrementing the value of `i` by 1, starting it at 0. Within the for loop we name an array of `[a, b, c]` and have it be equal to `lines[i]`. Next, we have an if check to see if `squares[a]` hasa a value, and if that value is equal to `squares[b]` and `squares[c]`. So each location of the value of `squares` we pass in is checled, and if it passes, then we return the value held in `squares[a]`. If it ddoesn't then we return null. This could definetly be refactored for faster time, though. If I ordered the array, I could use binary search to cut down on the potential search time. Not that it matters with data this small... a potential refactor for later.
+The logic is setup with a sqaures parameter to pass in. It defines the `lines` variable as an array of 8 arrays that each hold one of the 8 possible combinations of three index locations to win a game. Next, we have a for loop that runs 8 times via the length of our `lines` array, incrementing the value of `i` by 1, starting it at 0. Within the for loop we name an array of `[a, b, c]` and have it be equal to `lines[i]`. Next, we have an if check to see if `squares[a]` hasa a value, and if that value is equal to `squares[b]` and `squares[c]`. So each location of the value of `squares` we pass in is checled, and if it passes, then we return the value held in `squares[a]`. If it ddoesn't then we return null. This could definetly be refactored for faster time, though. If I ordered the array, I could use binary search to cut down on the potential search time. Not that it matters with data this small... a potential refactor for later. However, I think it's ultimately fruitless as our array will stay limited in size and keeping a linear search won't take up too much time or memory.
 
 We'll run `calculateWinner(squares)` in our `Board` component's `handleClick` function to check if a player has won. We can perform this check at the same time we check if a user has clicked a square that already has an "X" or an "O".
 
 To let players know that the game is over, we can display test such as "Winner: X" or "Winner: O". To do this we'll add a `status` section to our `Board` component. The status will display if the game is over and if the game is ongoing we'll display which player's turn is next.
 
-The game can now recognize winners and tell us whose turn it is. But it cannot recognize draws, the search could be better optimized, and we still have to implement the time travel feature. Let's see about adding the first two before moving onto the next section.
+The game can now recognize winners and tell us whose turn it is. But it cannot recognize draws, the search could be better optimized, and we still have to implement the time travel feature. Let's see about adding the win condition.
 
 ## Refactoring
-Need to add in the logic for if the game ends in a draw, and looking to implement binary search.
+Need to add in the logic for if the game ends in a draw.
 
 ### Draw 
 To start, we will look in the `calculateWinner` function. If we add in an else if statement after checking to see if we have a winning combination, we'll havethis else if see if the `squares` prop passed in as an array will use the already defined method of `.every()` to see if each element is not `null`. If it does, then we know each square is filled, but none create a winning combo. We'll have `calculateWinner` return the string "Draw" which will give us the outcome of "Winner: Draw" if the condition is met.
-
-### Binary Search
-Beginning again, we will be working with the `calculateWinner` function again. We'll need to do some prep-work first, however. We'll need to order our arrays in order to make use a binary search. Luckily, our array isn't too big, and this will be easily refactored.
-
-
 
 ## Adding time travel
 
@@ -181,6 +176,38 @@ However we used `slice()` to create a copy of the `squares` array after every mo
 We'll store the past `squares` arrays in another array called `history`, which we'll store as a new state variable. The `history` array represents all boards states, from the first to the last move.
 
 ### Lifting state up, again
+
+We will now write a new top-level componnent called `Game` to display a list of past moves, where we will place the `history` state that contains the entire game history.
+
+Placing the `history` state into the `Game` component will let us remove the `squares` state from its child `Board` component. Just like when we "lifted state up" from the `Square` component into the `Board` component, we will now lift it up from the `Board` into the top-level `Game` component. This gives the `Game` component full control over the `Board`'s data and lets it instruct the `Board` to render previous turns from the `history`.
+
+First, when creating the `Game` component we'll give it the `export default` declaration and remove it from the `Board` component. We'll then of course have it render the `Board` component and some markup. Again, remember that this tells our `index.js` file to use the `Game` coponent as the top-level componwnt instead of our `Board` component. The addditional `div`s returned by the `Game` component are making room for the game information we'll add to the board later.
+
+Next, we'll add some state to the `Game` component to track which player is next and the history of moves.
+```
+const [xIsNext, setXIsNext] = useState(true);
+const [history, setHistory] = useState([Array(9).fill(null)]);
+```
+
+Make note how `[Array(9).fill(null)]` is an array with a single item, which itself is an array of 9 `null`s.
+
+To render the squares for the current move, you'll want to read the last squares array from the `history`. We don't need `useState` for this- we already have enough information to calcualte it during rendering: `const currentSquares = history[history.length - 1];`
+
+Next, we'll create a `handlePlay` function with a parameter of `nextSquares` inside the `Game` component that will be called by the `Board` component to update the game. Pass `xIsNext`, `currentSquares`, and `handlePlay` as props to the `Board` component its props being `xIsNext`, `squares`, and `onPlay` respectively.
+
+Now we'll make the `Board` component be fully controlled by the props it receives. We'll change the `Board` component to take the three aforementioned props, the third being a new function that `Board` can call with the updated squares array when a player mekes a move, additionally, we'll remove the first two lines of the `Board` function that call `useState`.
+
+With `SetSquares` and `setXIsNext` removed, no longer defined in `Board`, we will need to remove our references of them in our logic within the `handleClick` function, replacingthem with a single call to our new `onPlay` function so that the `Game` component can update the `Board` when the user clicks a square.
+
+The `Board` component is fully controlled by the props passed to it by the `Game` component. We need to implement the `handlePlay` function in the `Game` component to get the game working again.
+
+`handlePlay` will need to now deal with our `useState` variables since `Board` no longer does. More specifically, it needs to update `Game`'s state to trigger a re-render but we don't have a `setSquares` function that we can call any more- we're now using the `history` state variable to store this information. We'll want to update `history` by appending the updated `squares` array as a new history entry. We also want to toggle `xIsNext`, just as Board used to do.
+
+`[...history, nextSquares]` creates a new array taht contains all the items in `history`, followed by `nextSquares`. `...history` is using the spread syntax to enumerate all the items in `history`.
+
+For example, if `history` is `[[null,null,null], ["X",null,null]]` and `nextSquare` is `["X",null,"O"]`, then the new `[...history, nextSquares]` array will be `[[null,null,null], ["X",null,null], ["X",null,"O"]]`.
+
+At this point we've moved the state to live in the `Game` component, and the UI should be fully working, just as it was before the refactor.
 
 
 Runs the app in the development mode.\
