@@ -209,6 +209,20 @@ For example, if `history` is `[[null,null,null], ["X",null,null]]` and `nextSqua
 
 At this point we've moved the state to live in the `Game` component, and the UI should be fully working, just as it was before the refactor.
 
+### Showing the past moves
+
+Since we are recording the game's history, we can now display a list of past moves to the player.
+
+React elements like `<button>` are regular JS objects; we can pass them around in our application. To render multiple items in React, we can use an array of React elements. 
+
+We already have an array of `history` moves in state, so now we need to transform it to an array of React elements. In JS, to transfomr 1 array into another, we can use the array map method:
+
+`[1,2,3].map((x) => x * 2) // [2, 4, 6]`
+
+We'll use `map` to transform our `history` of moves into React elements representing buttons on the screen, and display a list of buttons to "jump" to past moves. Let's `map` over the `history` in the `Game` component.
+
+
+
 
 Runs the app in the development mode.\
 Open [http://localhost:3000](http://localhost:3000) to view it in your browser.
