@@ -221,6 +221,50 @@ We already have an array of `history` moves in state, so now we need to transfor
 
 We'll use `map` to transform our `history` of moves into React elements representing buttons on the screen, and display a list of buttons to "jump" to past moves. Let's `map` over the `history` in the `Game` component.
 
+However, we will run into an error in which each child in an arry or iterator will need to have a unique "key" prop. We will resolve this in the next section.
+
+As we iterate through the `history` array inside the functiom we passed to `map`, the `squares` argument goes through each element of `history`, and the `move` argument goes through each array index.
+
+For each move in the game's history, we create a list item <li> which contains a button `<button>`. The button has an `onClick` handler which calls a function called `jumpTo` which isn't implemented yet.
+
+For now, we should see a list of the moves that occurred in the game. But let's move to this "key" error now.
+
+### Picking a key
+
+When we render a list, React stores some information about each rendered list item. When we update a list, React needs to determine what has changed. We could have added, removed, re-arranged, or updated the list's items.
+
+Think of transitioning from
+```
+<li>Alexa: 7 tasks left</li>
+<li>Ben: 5 tasks left</li>
+```
+to
+```
+<li>Ben: 9 tasks left</li>
+<li>Claudia: 8 tasks left</li>
+<li>Alexa: 5 tasks left</li>
+```
+
+In addition to the updated counts, a human reading this would probably say that we swapped Alexa and Ben's ordering and inserted Claudia between Alexa nd Ben. However, React is a computer program and can't know what we intended, so we need to specify a key property for each list item to differentiate each list item from its siblings. If our data was from a database, Alexa, Ben, and Claudia's database IDs could be used as keys.
+
+```
+<li key={user.id}>
+  {user.name}: {user.taskCount} tasks left
+</li>
+```
+
+When a list is re-rendered, React takes each list item's key and searches the previous list's items for a matching key. If the current list has a key that didn't exist before, React creates a component. If the current list is missing a key that existed in the previous list, React destroys the previous component. If 2 keys match, the corresponding component is moved.
+
+Keys tell React about the identity of each component, which allows React to maintain state between re-renders. If a component's key changes, the component will be destroyed and re-created with a new state.
+
+`key` is a special and reserved property in React. When an element is created, React extracts th `key` property and stores the key directly on the returned element. Even though `key` may look like it is passed as props, React automatically uses `key` to decide which components to update. There's no way for a component to ask what `key` its parent specified.
+
+**It's strongly recommended that we assign proper keys whenever we build dynamic lists.** If we don't have n appropriate key, we may want to consider restructuring our data so that we do.
+
+If no key is specified, React will report an error and use the array index as a key by default. Using the arrray index as a key is problematic when trying to re-order a list's items or inserting/removing list items. Explicitly passing `key={i}` silences the error but has the same problems as array indices and is not recommended in most cases.
+
+Keys do not need to be golablly unique; thay only need to be unique between components and their siblings.
+
 
 
 
