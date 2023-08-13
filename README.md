@@ -149,24 +149,19 @@ This will aloow us to switch between this bool state when needed. However, we wi
 
 Now that the players can take turns, we'll want to show when the game is won and there are no more turns to make. To do this, we'll need to add a helper function that we will name `calculateWinner` that will take an array of 9 squares, checks for a winner and returns `X`, `O`, or `null` as appropriate.
 
-The logic is setup with a sqaures parameter to pass in. It defines the `lines` variable as an array of 8 arrays that each hold one of the 8 possible combinations of three index locations to win a game. Next, we have a for loop that runs 8 times via the length of our `lines` array, incrementing the value of `i` by 1, starting it at 0. Within the for loop we name an array of `[a, b, c]` and have it be equal to `lines[i]`. Next, we have an if check to see if `squares[a]` hasa a value, and if that value is equal to `squares[b]` and `squares[c]`. So each location of the value of `squares` we pass in is checled, and if it passes, then we return the value held in `squares[a]`. If it ddoesn't then we return null. This could definetly be refactored for faster time, though. If I ordered the array, I could use binary search to cut down on the potential search time. Not that it matters with data this small... a potential refactor for later.
+The logic is setup with a sqaures parameter to pass in. It defines the `lines` variable as an array of 8 arrays that each hold one of the 8 possible combinations of three index locations to win a game. Next, we have a for loop that runs 8 times via the length of our `lines` array, incrementing the value of `i` by 1, starting it at 0. Within the for loop we name an array of `[a, b, c]` and have it be equal to `lines[i]`. Next, we have an if check to see if `squares[a]` hasa a value, and if that value is equal to `squares[b]` and `squares[c]`. So each location of the value of `squares` we pass in is checled, and if it passes, then we return the value held in `squares[a]`. If it ddoesn't then we return null. This could definetly be refactored for faster time, though. If I ordered the array, I could use binary search to cut down on the potential search time. Not that it matters with data this small... a potential refactor for later. However, I think it's ultimately fruitless as our array will stay limited in size and keeping a linear search won't take up too much time or memory.
 
 We'll run `calculateWinner(squares)` in our `Board` component's `handleClick` function to check if a player has won. We can perform this check at the same time we check if a user has clicked a square that already has an "X" or an "O".
 
 To let players know that the game is over, we can display test such as "Winner: X" or "Winner: O". To do this we'll add a `status` section to our `Board` component. The status will display if the game is over and if the game is ongoing we'll display which player's turn is next.
 
-The game can now recognize winners and tell us whose turn it is. But it cannot recognize draws, the search could be better optimized, and we still have to implement the time travel feature. Let's see about adding the first two before moving onto the next section.
+The game can now recognize winners and tell us whose turn it is. But it cannot recognize draws, the search could be better optimized, and we still have to implement the time travel feature. Let's see about adding the win condition.
 
 ## Refactoring
-Need to add in the logic for if the game ends in a draw, and looking to implement binary search.
+Need to add in the logic for if the game ends in a draw.
 
 ### Draw 
 To start, we will look in the `calculateWinner` function. If we add in an else if statement after checking to see if we have a winning combination, we'll havethis else if see if the `squares` prop passed in as an array will use the already defined method of `.every()` to see if each element is not `null`. If it does, then we know each square is filled, but none create a winning combo. We'll have `calculateWinner` return the string "Draw" which will give us the outcome of "Winner: Draw" if the condition is met.
-
-### Binary Search
-Beginning again, we will be working with the `calculateWinner` function again. We'll need to do some prep-work first, however. We'll need to order our arrays in order to make use a binary search. Luckily, our array isn't too big, and this will be easily refactored.
-
-
 
 ## Adding time travel
 
@@ -181,6 +176,120 @@ However we used `slice()` to create a copy of the `squares` array after every mo
 We'll store the past `squares` arrays in another array called `history`, which we'll store as a new state variable. The `history` array represents all boards states, from the first to the last move.
 
 ### Lifting state up, again
+
+We will now write a new top-level componnent called `Game` to display a list of past moves, where we will place the `history` state that contains the entire game history.
+
+Placing the `history` state into the `Game` component will let us remove the `squares` state from its child `Board` component. Just like when we "lifted state up" from the `Square` component into the `Board` component, we will now lift it up from the `Board` into the top-level `Game` component. This gives the `Game` component full control over the `Board`'s data and lets it instruct the `Board` to render previous turns from the `history`.
+
+First, when creating the `Game` component we'll give it the `export default` declaration and remove it from the `Board` component. We'll then of course have it render the `Board` component and some markup. Again, remember that this tells our `index.js` file to use the `Game` coponent as the top-level componwnt instead of our `Board` component. The addditional `div`s returned by the `Game` component are making room for the game information we'll add to the board later.
+
+Next, we'll add some state to the `Game` component to track which player is next and the history of moves.
+```
+const [xIsNext, setXIsNext] = useState(true);
+const [history, setHistory] = useState([Array(9).fill(null)]);
+```
+
+Make note how `[Array(9).fill(null)]` is an array with a single item, which itself is an array of 9 `null`s.
+
+To render the squares for the current move, you'll want to read the last squares array from the `history`. We don't need `useState` for this- we already have enough information to calcualte it during rendering: `const currentSquares = history[history.length - 1];`
+
+Next, we'll create a `handlePlay` function with a parameter of `nextSquares` inside the `Game` component that will be called by the `Board` component to update the game. Pass `xIsNext`, `currentSquares`, and `handlePlay` as props to the `Board` component its props being `xIsNext`, `squares`, and `onPlay` respectively.
+
+Now we'll make the `Board` component be fully controlled by the props it receives. We'll change the `Board` component to take the three aforementioned props, the third being a new function that `Board` can call with the updated squares array when a player mekes a move, additionally, we'll remove the first two lines of the `Board` function that call `useState`.
+
+With `SetSquares` and `setXIsNext` removed, no longer defined in `Board`, we will need to remove our references of them in our logic within the `handleClick` function, replacingthem with a single call to our new `onPlay` function so that the `Game` component can update the `Board` when the user clicks a square.
+
+The `Board` component is fully controlled by the props passed to it by the `Game` component. We need to implement the `handlePlay` function in the `Game` component to get the game working again.
+
+`handlePlay` will need to now deal with our `useState` variables since `Board` no longer does. More specifically, it needs to update `Game`'s state to trigger a re-render but we don't have a `setSquares` function that we can call any more- we're now using the `history` state variable to store this information. We'll want to update `history` by appending the updated `squares` array as a new history entry. We also want to toggle `xIsNext`, just as Board used to do.
+
+`[...history, nextSquares]` creates a new array taht contains all the items in `history`, followed by `nextSquares`. `...history` is using the spread syntax to enumerate all the items in `history`.
+
+For example, if `history` is `[[null,null,null], ["X",null,null]]` and `nextSquare` is `["X",null,"O"]`, then the new `[...history, nextSquares]` array will be `[[null,null,null], ["X",null,null], ["X",null,"O"]]`.
+
+At this point we've moved the state to live in the `Game` component, and the UI should be fully working, just as it was before the refactor.
+
+### Showing the past moves
+
+Since we are recording the game's history, we can now display a list of past moves to the player.
+
+React elements like `<button>` are regular JS objects; we can pass them around in our application. To render multiple items in React, we can use an array of React elements. 
+
+We already have an array of `history` moves in state, so now we need to transform it to an array of React elements. In JS, to transfomr 1 array into another, we can use the array map method:
+
+`[1,2,3].map((x) => x * 2) // [2, 4, 6]`
+
+We'll use `map` to transform our `history` of moves into React elements representing buttons on the screen, and display a list of buttons to "jump" to past moves. Let's `map` over the `history` in the `Game` component.
+
+However, we will run into an error in which each child in an arry or iterator will need to have a unique "key" prop. We will resolve this in the next section.
+
+As we iterate through the `history` array inside the functiom we passed to `map`, the `squares` argument goes through each element of `history`, and the `move` argument goes through each array index.
+
+For each move in the game's history, we create a list item <li> which contains a button `<button>`. The button has an `onClick` handler which calls a function called `jumpTo` which isn't implemented yet.
+
+For now, we should see a list of the moves that occurred in the game. But let's move to this "key" error now.
+
+### Picking a key
+
+When we render a list, React stores some information about each rendered list item. When we update a list, React needs to determine what has changed. We could have added, removed, re-arranged, or updated the list's items.
+
+Think of transitioning from
+```
+<li>Alexa: 7 tasks left</li>
+<li>Ben: 5 tasks left</li>
+```
+to
+```
+<li>Ben: 9 tasks left</li>
+<li>Claudia: 8 tasks left</li>
+<li>Alexa: 5 tasks left</li>
+```
+
+In addition to the updated counts, a human reading this would probably say that we swapped Alexa and Ben's ordering and inserted Claudia between Alexa nd Ben. However, React is a computer program and can't know what we intended, so we need to specify a key property for each list item to differentiate each list item from its siblings. If our data was from a database, Alexa, Ben, and Claudia's database IDs could be used as keys.
+
+```
+<li key={user.id}>
+  {user.name}: {user.taskCount} tasks left
+</li>
+```
+
+When a list is re-rendered, React takes each list item's key and searches the previous list's items for a matching key. If the current list has a key that didn't exist before, React creates a component. If the current list is missing a key that existed in the previous list, React destroys the previous component. If 2 keys match, the corresponding component is moved.
+
+Keys tell React about the identity of each component, which allows React to maintain state between re-renders. If a component's key changes, the component will be destroyed and re-created with a new state.
+
+`key` is a special and reserved property in React. When an element is created, React extracts th `key` property and stores the key directly on the returned element. Even though `key` may look like it is passed as props, React automatically uses `key` to decide which components to update. There's no way for a component to ask what `key` its parent specified.
+
+**It's strongly recommended that we assign proper keys whenever we build dynamic lists.** If we don't have n appropriate key, we may want to consider restructuring our data so that we do.
+
+If no key is specified, React will report an error and use the array index as a key by default. Using the arrray index as a key is problematic when trying to re-order a list's items or inserting/removing list items. Explicitly passing `key={i}` silences the error but has the same problems as array indices and is not recommended in most cases.
+
+Keys do not need to be golablly unique; thay only need to be unique between components and their siblings.
+
+### Implementing time travel
+In the game's history, each past move has a unique ID associated with it: it's the srquential number of the move. Moves will never be re-ordered, deleted, or inserted in the middle, so it's safe to use the move index as a key.
+
+In the `Game` function, we can add the ksy as `<li key={move}>`, and if we reload the rendered game, React's "key" error should disappear.
+
+Before we can implement `jumpTo` we need the `Game` component to keep track of which step the user is currently viewing. To do this, define anew state variable called `currentMove`, defaulting to 0.
+
+Next, we'll update the `jumpTo` function inside `Game` to update taht `currentMove`. We'll also set `xIsNext` to `true` if the number that we're changing `currentMove` to is even.
+
+We will now make 2 chabges to the `Game`'s `handlePlay` function which is called when we click on a square.
+
+* If we "go back in time" and then make a new move from taht point, we only want to keep the history up to that point. Instead of adding `nextSquares` after all the items in `history`, we'll add it after all items in `history.slice(o, currentMove + 1)` so that we're only keeping that portion of the old history.
+* Each time a move is made, we need to update `currentMove` to point to the latest history entry.
+
+Finally, we'll modify the `Game` component to render the crurently selected move, instead of it always rendering the final move.
+
+If we click on any step in the game's histroy, the board should immediately update to show what the board looked like after that step occurred.
+
+### Final cleanup
+
+If we look at the code very closely, we may notice that `xIsNext === true` when `currentMove` is even and `xIsNext === false` when `currentMove` is odd. In other words, if we know the value of `currentMove`, then we can always figure out what `xIsNext` should be.
+
+There's no reason for us to store both of these in state. In fact, always try to avoid redundant state. Simplifying what we store in state reduces bugs ad makes our code easier to understand. Change `Game` so that it deosn't store `xIsNext` as a separate state variable and instead figures it out based on the `currenMove`.
+
+Now we no longer need the `xIsNext` state declaration or the calls to `setXIsNext`. Now, there's no chance for `xIsNext` to get out of sync with `currentMove`, even if we make a mistake while coding the components.
 
 
 Runs the app in the development mode.\
