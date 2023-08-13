@@ -291,6 +291,24 @@ There's no reason for us to store both of these in state. In fact, always try to
 
 Now we no longer need the `xIsNext` state declaration or the calls to `setXIsNext`. Now, there's no chance for `xIsNext` to get out of sync with `currentMove`, even if we make a mistake while coding the components.
 
+### Wrapping up
+And we are finished setting up our game. We have a tic-tac-toe game that:
+* Lets us plat tic-tac-toe
+* Indicates when a player has won the game
+* Indicates when a game is tied
+* Stores a game's history as a game progresses
+* And allows players to review a game's history and see previous versions of a game's board.
+
+Well done, this was a great start to get a grasp on how React works.
+
+Some potential features/ refactors to try to implement for the future, however:
+1. For the current move only, show “You are at move #…” instead of a button.
+2. Rewrite Board to use two loops to make the squares instead of hardcoding them.
+3. Add a toggle button that lets you sort the moves in either ascending or descending order.
+4. When someone wins, highlight the three squares that caused the win (and when no one wins, display a message about the result being a draw).
+5. Display the location for each move in the format (row, col) in the move history list.
+
+# React Tips
 
 Runs the app in the development mode.\
 Open [http://localhost:3000](http://localhost:3000) to view it in your browser.
