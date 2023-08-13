@@ -265,6 +265,24 @@ If no key is specified, React will report an error and use the array index as a 
 
 Keys do not need to be golablly unique; thay only need to be unique between components and their siblings.
 
+### Implementing time travel
+In the game's history, each past move has a unique ID associated with it: it's the srquential number of the move. Moves will never be re-ordered, deleted, or inserted in the middle, so it's safe to use the move index as a key.
+
+In the `Game` function, we can add the ksy as `<li key={move}>`, and if we reload the rendered game, React's "key" error should disappear.
+
+Before we can implement `jumpTo` we need the `Game` component to keep track of which step the user is currently viewing. To do this, define anew state variable called `currentMove`, defaulting to 0.
+
+Next, we'll update the `jumpTo` function inside `Game` to update taht `currentMove`. We'll also set `xIsNext` to `true` if the number that we're changing `currentMove` to is even.
+
+We will now make 2 chabges to the `Game`'s `handlePlay` function which is called when we click on a square.
+
+* If we "go back in time" and then make a new move from taht point, we only want to keep the history up to that point. Instead of adding `nextSquares` after all the items in `history`, we'll add it after all items in `history.slice(o, currentMove + 1)` so that we're only keeping that portion of the old history.
+* Each time a move is made, we need to update `currentMove` to point to the latest history entry.
+
+Finally, we'll modify the `Game` component to render the crurently selected move, instead of it always rendering the final move.
+
+If we click on any step in the game's histroy, the board should immediately update to show what the board looked like after that step occurred.
+
 
 
 
