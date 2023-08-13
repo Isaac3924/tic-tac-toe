@@ -155,7 +155,33 @@ We'll run `calculateWinner(squares)` in our `Board` component's `handleClick` fu
 
 To let players know that the game is over, we can display test such as "Winner: X" or "Winner: O". To do this we'll add a `status` section to our `Board` component. The status will display if the game is over and if the game is ongoing we'll display which player's turn is next.
 
-The game can now recognize winners and tell us whose turn it is. But it cannot recognize draws, the search could be better optimized, and we still have to implement the time travel feature. LEt's see about adding the first two before moving onto the next section.
+The game can now recognize winners and tell us whose turn it is. But it cannot recognize draws, the search could be better optimized, and we still have to implement the time travel feature. Let's see about adding the first two before moving onto the next section.
+
+## Refactoring
+Need to add in the logic for if the game ends in a draw, and looking to implement binary search.
+
+### Draw 
+To start, we will look in the `calculateWinner` function. If we add in an else if statement after checking to see if we have a winning combination, we'll havethis else if see if the `squares` prop passed in as an array will use the already defined method of `.every()` to see if each element is not `null`. If it does, then we know each square is filled, but none create a winning combo. We'll have `calculateWinner` return the string "Draw" which will give us the outcome of "Winner: Draw" if the condition is met.
+
+### Binary Search
+Beginning again, we will be working with the `calculateWinner` function again. We'll need to do some prep-work first, however. We'll need to order our arrays in order to make use a binary search. Luckily, our array isn't too big, and this will be easily refactored.
+
+
+
+## Adding time travel
+
+Now, let's make it possible to return to previous turns.
+
+### Storing a history of moves
+
+If we mutated the `squars` array, immplementing 'time travel' would be very difficult.
+
+However we used `slice()` to create a copy of the `squares` array after every move, treating the original array as immutable. This will allow us to store every past version of the `squares` array, and navigate between the turns that have already happened.
+
+We'll store the past `squares` arrays in another array called `history`, which we'll store as a new state variable. The `history` array represents all boards states, from the first to the last move.
+
+### Lifting state up, again
+
 
 Runs the app in the development mode.\
 Open [http://localhost:3000](http://localhost:3000) to view it in your browser.
