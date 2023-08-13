@@ -283,7 +283,13 @@ Finally, we'll modify the `Game` component to render the crurently selected move
 
 If we click on any step in the game's histroy, the board should immediately update to show what the board looked like after that step occurred.
 
+### Final cleanup
 
+If we look at the code very closely, we may notice that `xIsNext === true` when `currentMove` is even and `xIsNext === false` when `currentMove` is odd. In other words, if we know the value of `currentMove`, then we can always figure out what `xIsNext` should be.
+
+There's no reason for us to store both of these in state. In fact, always try to avoid redundant state. Simplifying what we store in state reduces bugs ad makes our code easier to understand. Change `Game` so that it deosn't store `xIsNext` as a separate state variable and instead figures it out based on the `currenMove`.
+
+Now we no longer need the `xIsNext` state declaration or the calls to `setXIsNext`. Now, there's no chance for `xIsNext` to get out of sync with `currentMove`, even if we make a mistake while coding the components.
 
 
 Runs the app in the development mode.\
